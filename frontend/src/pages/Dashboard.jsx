@@ -24,7 +24,6 @@ const pct = (v) =>
     ? v
     : `${v}%`;
 
-// ✅ SIMPLE EXCEL-STYLE DATE FORMAT (DD-MM-YYYY)
 const fmtDate = (d) => {
   if (!d) return "";
   const dt = new Date(d);
@@ -193,7 +192,7 @@ function Dashboard() {
         <SignalTable data={signals.risk.data} />
       </div>
 
-      {/* SIGNAL BUTTONS – IMAGE MATCHED */}
+      {/* SIGNAL BUTTONS */}
       <div className="flex gap-3 mb-4">
         {Object.entries(signals).map(([key, cfg]) => {
           const active = activeSignal === key;
@@ -252,30 +251,41 @@ function Dashboard() {
 // ================= TABLE =================
 function SignalTable({ data }) {
   return data.length === 0 ? (
-    <p className="text-gray-500">No items</p>
+    <p className="text-gray-500 text-sm">No items</p>
   ) : (
-    <table className="min-w-full text-sm">
+    <table className="min-w-full text-[12.5px] leading-tight">
       <thead className="bg-gray-100">
-        <tr>
-          <th className="p-2 text-left">Workstream</th>
-          <th className="p-2 text-left">Deliverable</th>
-          <th className="p-2 text-left">Status</th>
-          <th className="p-2 text-left">Progress</th>
-          <th className="p-2 text-left">Start Date</th>
-          <th className="p-2 text-left">End Date</th>
-          <th className="p-2 text-left">Owner</th>
+        <tr className="text-gray-700 uppercase text-[11px] tracking-wide">
+          <th className="px-2 py-1.5 text-left">Workstream</th>
+          <th className="px-2 py-1.5 text-left">Deliverable</th>
+          <th className="px-2 py-1.5 text-left">Status</th>
+          <th className="px-2 py-1.5 text-left">Progress</th>
+          <th className="px-2 py-1.5 text-left">Start Date</th>
+          <th className="px-2 py-1.5 text-left">End Date</th>
+          <th className="px-2 py-1.5 text-left">Owner</th>
         </tr>
       </thead>
       <tbody>
-        {data.map(r => (
-          <tr key={r.id} className="border-t">
-            <td className="p-2">{r.workstream}</td>
-            <td className="p-2">{r.deliverable}</td>
-            <td className="p-2">{r.status}</td>
-            <td className="p-2">{pct(r.progress)}</td>
-            <td className="p-2">{fmtDate(r.startDate)}</td>
-            <td className="p-2">{fmtDate(r.endDate)}</td>
-            <td className="p-2">{r.owner}</td>
+        {data.map((r) => (
+          <tr key={r.id} className="border-t hover:bg-gray-50">
+            <td className="px-2 py-1.5">{r.workstream}</td>
+            <td className="px-2 py-1.5">{r.deliverable}</td>
+
+            {/* ✅ STATUS COLOR RESTORED */}
+            <td
+              className={`px-2 py-1.5 font-medium ${
+                r.status === "Delayed" || r.status === "Blocked"
+                  ? "text-red-600"
+                  : "text-gray-800"
+              }`}
+            >
+              {r.status}
+            </td>
+
+            <td className="px-2 py-1.5">{pct(r.progress)}</td>
+            <td className="px-2 py-1.5">{fmtDate(r.startDate)}</td>
+            <td className="px-2 py-1.5">{fmtDate(r.endDate)}</td>
+            <td className="px-2 py-1.5">{r.owner}</td>
           </tr>
         ))}
       </tbody>
