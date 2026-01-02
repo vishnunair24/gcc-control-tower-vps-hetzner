@@ -1,38 +1,56 @@
-const prisma = require("../prisma/client");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
-// GET all tasks
+/**
+ * GET all tasks
+ */
 exports.getTasks = async (req, res) => {
   try {
     const tasks = await prisma.task.findMany({
       orderBy: { id: "asc" },
     });
     res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// CREATE task
-exports.createTask = async (req, res) => {
-  try {
-    const task = await prisma.task.create({
-      data: req.body,
-    });
-    res.json(task);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// UPDATE task (inline edit save)
+/**
+ * UPDATE task (THIS IS WHERE DATE FIX IS)
+ */
 exports.updateTask = async (req, res) => {
+  const id = Number(req.params.id);
+  const data = req.body;
+
   try {
-    const updatedTask = await prisma.task.update({
-      where: { id: Number(req.params.id) },
-      data: req.body,
+    const updated = await prisma.task.update({
+      where: { id },
+      data: {
+        workstream: data.workstream,
+        deliverable: data.deliverable,
+        status: data.status,
+        progress: Number(data.progress),
+        phase: data.phase,
+        milestone: data.milestone,
+        owner: data.owner,
+
+        // 🔥 CRITICAL FIX
+        startDate: data.startDate
+          ? new Date(data.startDate)
+          : undefined,
+
+        endDate: data.endDate
+          ? new Date(data.endDate)
+          : undefined,
+      },
     });
-    res.json(updatedTask);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+
+    res.json(updated);
+  } catch (err) {
+    console.error("❌ Update failed:", err);
+    res.status(500).json({
+      error: "Update failed",
+      details: err.message,
+    });
   }
 };

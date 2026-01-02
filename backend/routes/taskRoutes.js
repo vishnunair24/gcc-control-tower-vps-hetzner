@@ -1,9 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const taskController = require("../controllers/taskController");
 
-router.get("/", taskController.getTasks);
-router.post("/", taskController.createTask);
-router.put("/:id", taskController.updateTask);
+const {
+  getTasks,
+  updateTask,
+} = require("../controllers/taskController");
+
+// =======================
+// Routes
+// =======================
+
+// Get all tasks
+router.get("/", getTasks);
+
+// Update task (edit from tracker)
+router.put("/:id", updateTask);
 
 module.exports = router;
