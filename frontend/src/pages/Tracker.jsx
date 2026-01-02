@@ -257,15 +257,15 @@ export default function Tracker() {
           <colgroup>
             <col style={{ width: "40px" }} />
             <col style={{ width: "80px" }} />
-            <col style={{ width: "230px" }} />
-            <col style={{ width: "80px" }} />
+            <col style={{ width: "210px" }} />
+            <col style={{ width: "70px" }} />
             <col style={{ width: "70px" }} />
             <col style={{ width: "60px" }} />
             <col style={{ width: "110px" }} />
-            <col style={{ width: "110px" }} />
-            <col style={{ width: "110px" }} />
-            <col style={{ width: "110px" }} />
-            <col style={{ width: "110px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "100px" }} />
           </colgroup>
 
           <thead>
