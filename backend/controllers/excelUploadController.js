@@ -1,57 +1,139 @@
-const xlsx = require("xlsx");
+const XLSX = require("xlsx");
 const prisma = require("../prisma/client");
 
-// Convert Excel date number to JS Date
-function excelDateToJSDate(excelDate) {
-  if (!excelDate) return null;
-
-  // If already a Date (sometimes Excel gives Date)
-  if (excelDate instanceof Date) return excelDate;
-
-  // Excel stores date as number of days since 1900
-  return new Date((excelDate - 25569) * 86400 * 1000);
+/**
+ * Normalize header names
+ */
+function normalizeHeader(h) {
+  return String(h)
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-exports.uploadExcel = async (req, res) => {
+/**
+ * Convert Excel date safely
+ */
+function parseDate(value, fallback) {
+  if (typeof value === "number") {
+    const utcDays = Math.floor(value - 25569);
+    return new Date(utcDays * 86400 * 1000);
+  }
+
+  if (typeof value === "string" && value.trim() !== "") {
+    const d = new Date(value);
+    if (!isNaN(d)) return d;
+  }
+
+  return fallback;
+}
+
+exports.replaceFromExcel = async (req, res) => {
+  console.log("🔥 EXCEL REPLACE CONTROLLER ACTIVE (HEADER SAFE)");
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const workbook = xlsx.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    const rows = xlsx.utils.sheet_to_json(sheet);
+    // Read raw rows (no header guessing)
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      header: 1,
+      defval: "",
+    });
 
-    if (rows.length === 0) {
-      return res.status(400).json({ error: "Excel file is empty" });
+    if (rows.length < 2) {
+      return res.status(400).json({ error: "Excel has no data rows" });
     }
 
-    // 🔥 TRANSFORM ROWS (THIS IS THE FIX)
-    const formattedRows = rows.map((row) => ({
-      workstream: row.workstream,
-      deliverable: row.deliverable,
-      status: row.status,
-      duration: Number(row.duration),
-      startDate: excelDateToJSDate(row.startDate),
-      endDate: excelDateToJSDate(row.endDate),
-      progress: Number(row.progress),
-      phase: row.phase,
-      milestone: row.milestone,
-      owner: row.owner,
-    }));
+    // Normalize headers
+    const headerRow = rows[0].map(normalizeHeader);
 
-    await prisma.task.createMany({
-      data: formattedRows,
-      skipDuplicates: true,
+    const colIndex = (name) =>
+      headerRow.findIndex((h) => h.includes(name));
+
+    const idx = {
+      workstream: colIndex("workstream"),
+      deliverable: colIndex("deliverable"),
+      status: colIndex("status"),
+      duration: colIndex("duration"),
+      startDate: colIndex("start"),
+      endDate: colIndex("end"),
+      progress: colIndex("progress"),
+      phase: colIndex("phase"),
+      milestone: colIndex("milestone"),
+      owner: colIndex("owner"),
+    };
+
+    const tasks = [];
+    const warnings = [];
+    const today = new Date();
+
+    rows.slice(1).forEach((row, i) => {
+      // Skip fully empty rows
+      if (row.every((c) => String(c).trim() === "")) return;
+
+      const startDate = parseDate(
+        row[idx.startDate],
+        today
+      );
+
+      const endDate = parseDate(
+        row[idx.endDate],
+        startDate
+      );
+
+      tasks.push({
+        workstream:
+          row[idx.workstream]?.toString().trim() || "General",
+        deliverable:
+          row[idx.deliverable]?.toString().trim() || "TBD",
+        status:
+          row[idx.status]?.toString().trim() || "WIP",
+        duration:
+          Number(row[idx.duration]) || 0,
+        startDate,
+        endDate,
+        progress:
+          Number(row[idx.progress]) || 0,
+        phase:
+          row[idx.phase]?.toString().trim() || "Unknown",
+        milestone:
+          row[idx.milestone]?.toString().trim() || "",
+        owner:
+          row[idx.owner]?.toString().trim() || "",
+      });
+    });
+
+    if (!tasks.length) {
+      return res.status(400).json({
+        error:
+          "No valid data rows found. Check Excel headers and data.",
+      });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const deleted = await tx.task.deleteMany();
+      const inserted = await tx.task.createMany({
+        data: tasks,
+      });
+
+      return {
+        deleted: deleted.count,
+        inserted: inserted.count,
+      };
     });
 
     res.json({
-      message: "Excel data imported successfully",
-      recordsInserted: formattedRows.length,
+      message: "Excel replaced successfully",
+      ...result,
+      rowsRead: rows.length - 1,
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("❌ EXCEL REPLACE ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };

@@ -3,25 +3,43 @@ import axios from "axios";
 
 export default function ExcelReplaceUpload({ onSuccess }) {
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const upload = async () => {
     if (!file) {
-      alert("Please select an Excel file first");
+      alert("Please select an Excel file");
       return;
     }
 
     if (
       !window.confirm(
-        "This will completely replace all existing tracker data. Continue?"
+        "This will completely replace ALL existing tracker data. Continue?"
       )
     )
       return;
 
+    setLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
 
-    await axios.post("http://localhost:4000/excel/replace", formData);
-    onSuccess();
+    try {
+      const res = await axios.post(
+        "http://localhost:4000/excel/replace",
+        formData
+      );
+
+      alert(
+        `Excel Replace Successful!\n\nDeleted: ${res.data.deleted}\nInserted: ${res.data.inserted}`
+      );
+
+      onSuccess();
+      setFile(null);
+    } catch (err) {
+      alert("Excel replace failed. Check backend logs.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,8 +57,12 @@ export default function ExcelReplaceUpload({ onSuccess }) {
         {file ? file.name : "No file selected"}
       </span>
 
-      <button className="btn-danger btn-xs" onClick={upload}>
-        Replace Data
+      <button
+        className="btn-danger btn-xs"
+        onClick={upload}
+        disabled={loading}
+      >
+        {loading ? "Replacing..." : "Replace Data"}
       </button>
     </div>
   );

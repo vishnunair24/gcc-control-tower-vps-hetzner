@@ -1,14 +1,12 @@
 const express = require("express");
 const multer = require("multer");
-const router = express.Router();
-const excelUploadController = require("../controllers/excelUploadController");
+const {
+  replaceFromExcel,
+} = require("../controllers/excelUploadController");
 
+const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post(
-  "/replace",
-  upload.single("file"),
-  excelUploadController.replaceAll
-);
+router.post("/replace", upload.single("file"), replaceFromExcel);
 
 module.exports = router;
