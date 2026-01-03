@@ -4,7 +4,7 @@ import axios from "axios";
 import ExcelReplaceUpload from "../components/ExcelReplaceUpload";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import "./Tracker.css";
+import "./InfraTracker.css";
 
 const PAGE_SIZE = 15;
 
@@ -199,7 +199,7 @@ export default function InfraTracker() {
   };
 
   return (
-    <div className="tracker-page">
+    <div className="tracker-page infra-tracker">
       {/* Header */}
       <div className="tracker-header">
         <h2>Infra Setup Tracker</h2>

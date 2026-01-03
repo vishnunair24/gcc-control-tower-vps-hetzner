@@ -1,0 +1,113 @@
+/* =====================================================
+   INFRA TRACKER ONLY – COLUMN WIDTHS
+   Scoped safely
+===================================================== */
+
+.infra-tracker .tracker-table th:first-child,
+.infra-tracker .tracker-table td:first-child {
+  width: 36px;
+  max-width: 36px;
+  text-align: center;
+}
+
+/* Infra Phase */
+.infra-tracker .tracker-table th:nth-child(2),
+.infra-tracker .tracker-table td:nth-child(2) {
+  width: 160px;
+}
+
+/* Task Name */
+.infra-tracker .tracker-table th:nth-child(3),
+.infra-tracker .tracker-table td:nth-child(3) {
+  width: 260px;
+}
+
+/* Status */
+.infra-tracker .tracker-table th:nth-child(4),
+.infra-tracker .tracker-table td:nth-child(4) {
+  width: 90px;
+  text-align: center;
+}
+
+/* % Complete */
+.infra-tracker .tracker-table th:nth-child(5),
+.infra-tracker .tracker-table td:nth-child(5) {
+  width: 80px;
+  text-align: center;
+}
+
+/* Start Date */
+.infra-tracker .tracker-table th:nth-child(6),
+.infra-tracker .tracker-table td:nth-child(6) {
+  width: 140px;
+  text-align: center;
+}
+
+/* End Date */
+.infra-tracker .tracker-table th:nth-child(7),
+.infra-tracker .tracker-table td:nth-child(7) {
+  width: 100px;
+  text-align: center;
+}
+
+/* Owner */
+.infra-tracker .tracker-table th:nth-child(8),
+.infra-tracker .tracker-table td:nth-child(8) {
+  width: 150px;
+}
+
+/* Action */
+.infra-tracker .tracker-table th:nth-child(9),
+.infra-tracker .tracker-table td:nth-child(9) {
+  width: 130px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* =====================================================
+   INFRA TRACKER – OWNER WIDTH & ALIGNMENT TUNING
+===================================================== */
+
+/* Owner column – reduce width, keep readable */
+.infra-tracker .tracker-table th:nth-child(8),
+.infra-tracker .tracker-table td:nth-child(8) {
+  width: 160px;
+  max-width: 160px;
+  text-align: left;
+}
+
+/* Center-align compact / numeric columns */
+.infra-tracker .tracker-table th:first-child,
+.infra-tracker .tracker-table td:first-child,
+.infra-tracker .tracker-table th:nth-child(4),
+.infra-tracker .tracker-table td:nth-child(4),
+.infra-tracker .tracker-table th:nth-child(5),
+.infra-tracker .tracker-table td:nth-child(5),
+.infra-tracker .tracker-table th:nth-child(6),
+.infra-tracker .tracker-table td:nth-child(6),
+.infra-tracker .tracker-table th:nth-child(7),
+.infra-tracker .tracker-table td:nth-child(7),
+.infra-tracker .tracker-table th:nth-child(9),
+.infra-tracker .tracker-table td:nth-child(9) {
+  text-align: center;
+}
+
+/* =====================================================
+   INFRA TRACKER – FINAL WIDTH ADJUSTMENTS
+===================================================== */
+
+/* Owner – reduce further */
+.infra-tracker .tracker-table th:nth-child(8),
+.infra-tracker .tracker-table td:nth-child(8) {
+  width: 140px;
+  max-width: 140px;
+  text-align: left;
+}
+
+/* Start Date – increase slightly for full visibility */
+.infra-tracker .tracker-table th:nth-child(6),
+.infra-tracker .tracker-table td:nth-child(6) {
+  width: 120px;
+  max-width: 120px;
+  text-align: center;
+}

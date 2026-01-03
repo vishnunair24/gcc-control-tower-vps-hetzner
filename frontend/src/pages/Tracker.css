@@ -200,3 +200,66 @@
 .filter-bar input {
   min-width: 140px;
 }
+
+.tracker-table th:first-child,
+.tracker-table td:first-child {
+  width: 36px;
+  max-width: 36px;
+  text-align: center;
+}
+
+/* =========================
+   Column width tuning
+========================= */
+
+/* Serial number (#) */
+.tracker-table th:first-child,
+.tracker-table td:first-child {
+  width: 36px;
+  max-width: 36px;
+  text-align: center;
+}
+
+/* Phase column */
+.tracker-table th:nth-child(6),
+.tracker-table td:nth-child(6) {
+  width: 70px;
+  max-width: 70px;
+  text-align: center;
+}
+
+/* Progress / % Complete column */
+.tracker-table th:nth-child(5),
+.tracker-table td:nth-child(5) {
+  width: 70px;
+  max-width: 70px;
+  text-align: center;
+}
+
+/* =========================
+   Deliverable & Status tuning
+========================= */
+
+/* Deliverable column - give more room */
+.tracker-table th:nth-child(3),
+.tracker-table td:nth-child(3) {
+  width: 180px;
+  max-width: 180px;
+}
+
+/* Status column - make compact */
+.tracker-table th:nth-child(4),
+.tracker-table td:nth-child(4) {
+  width: 80px;
+  max-width: 80px;
+  text-align: center;
+}
+
+/* Action column - allow Save / Cancel comfortably */
+.tracker-table th:last-child,
+.tracker-table td:last-child {
+  width: 100px;
+  max-width: 100px;
+  white-space: nowrap;
+  text-align: center;
+}
