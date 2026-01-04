@@ -16,7 +16,7 @@ export default function InfraIntelligence() {
   const [tasks, setTasks] = useState([]);
 
   // =========================
-  // Timeline controls (RESTORED)
+  // Timeline controls
   // =========================
   const [useCustomStart, setUseCustomStart] = useState(false);
   const [customStart, setCustomStart] = useState("");
@@ -45,9 +45,6 @@ export default function InfraIntelligence() {
       .then((res) => setTasks(res.data || []));
   }, []);
 
-  // =========================
-  // Valid tasks
-  // =========================
   const validTasks = useMemo(
     () =>
       tasks.filter(
@@ -56,9 +53,6 @@ export default function InfraIntelligence() {
     [tasks]
   );
 
-  // =========================
-  // Timeline bounds (SAME LOGIC)
-  // =========================
   const originalStart = useMemo(() => {
     if (!validTasks.length) return null;
     return new Date(
@@ -80,9 +74,6 @@ export default function InfraIntelligence() {
   const viewDuration =
     viewStart && viewEnd ? viewEnd - viewStart : 0;
 
-  // =========================
-  // Filters
-  // =========================
   const filteredTasks = useMemo(() => {
     return validTasks.filter((t) =>
       (!filters.infraPhase ||
@@ -98,9 +89,6 @@ export default function InfraIntelligence() {
     );
   }, [validTasks, filters]);
 
-  // =========================
-  // Group by Infra Phase
-  // =========================
   const phases = useMemo(() => {
     const map = {};
     filteredTasks.forEach((t) => {
@@ -125,25 +113,17 @@ export default function InfraIntelligence() {
     return Object.values(map);
   }, [filteredTasks]);
 
-  // =========================
-  // Bar positioning
-  // =========================
   const barStyle = (start, end) => {
     if (!viewStart || !viewEnd) return null;
-
     const vs = Math.max(start.getTime(), viewStart.getTime());
     const ve = Math.min(end.getTime(), viewEnd.getTime());
     if (ve <= vs) return null;
-
     return {
       left: `${((vs - viewStart) / viewDuration) * 100}%`,
       width: `${((ve - vs) / viewDuration) * 100}%`,
     };
   };
 
-  // =========================
-  // Timeline markers (CLAMPED FIX)
-  // =========================
   const markers = [];
   if (viewStart) {
     const step = viewMode === "monthly" ? 30 : 7;
@@ -162,6 +142,61 @@ export default function InfraIntelligence() {
   const ownerOptions = [
     ...new Set(tasks.map((t) => t.owner).filter(Boolean)),
   ];
+
+  /* ============================================================
+     🆕 INFRA HEALTH SNAPSHOT (APPENDED – NO EXISTING LOGIC TOUCHED)
+     ============================================================ */
+  const infraHealth = useMemo(() => {
+    const atRiskPhases = new Set();
+    let blockedCount = 0;
+
+    filteredTasks.forEach((t) => {
+      if (t.status === "Delayed" || t.status === "Blocked") {
+        atRiskPhases.add(t.infraPhase);
+      }
+      if (t.status === "Blocked") blockedCount++;
+    });
+
+    const executable = filteredTasks.filter(
+      (t) =>
+        t.status === "WIP" &&
+        (t.percentComplete ?? 0) >= 60 &&
+        new Date(t.endDate) >= today
+    );
+
+    const executionHealth = filteredTasks.length
+      ? Math.round((executable.length / filteredTasks.length) * 100)
+      : 0;
+
+    let confidence = "High";
+    if (blockedCount > 0 || executionHealth < 50) confidence = "Low";
+    else if (executionHealth < 70) confidence = "Medium";
+
+    return {
+      executionHealth,
+      atRiskCount: atRiskPhases.size,
+      blockedCount,
+      confidence,
+    };
+  }, [filteredTasks, today]);
+
+  const applyAtRiskFilter = () => {
+    setFilters({
+      infraPhase: "",
+      taskName: "",
+      owner: "",
+      status: "Delayed",
+    });
+  };
+
+  const applyBlockedFilter = () => {
+    setFilters({
+      infraPhase: "",
+      taskName: "",
+      owner: "",
+      status: "Blocked",
+    });
+  };
 
   return (
     <div className="p-6 text-sm">
@@ -226,7 +261,6 @@ export default function InfraIntelligence() {
           <option>Completed</option>
         </select>
 
-        {/* CLEAR FILTERS */}
         <button
           className="btn-secondary btn-xs"
           onClick={() =>
@@ -242,7 +276,7 @@ export default function InfraIntelligence() {
         </button>
       </div>
 
-      {/* CONTROLS (RESTORED ORDER & STYLE) */}
+      {/* CONTROLS */}
       <div className="flex flex-wrap gap-4 mb-3 text-xs items-center">
         <label>
           <input
@@ -310,7 +344,7 @@ export default function InfraIntelligence() {
         </button>
       </div>
 
-      {/* ================= GANTT ================= */}
+      {/* ================= GANTT (UNCHANGED) ================= */}
       {viewStart && (
         <div className="relative">
           {showTodayLine && (
@@ -322,16 +356,11 @@ export default function InfraIntelligence() {
             />
           )}
 
-          {/* DATE MARKERS */}
           <div className="relative h-6 mb-2 ml-52 text-[11px] text-gray-500 overflow-hidden">
             {markers.map((m) => {
               const rawLeft =
                 ((m - viewStart) / viewDuration) * 100;
-              const left = Math.min(
-                Math.max(rawLeft, 0),
-                96
-              );
-
+              const left = Math.min(Math.max(rawLeft, 0), 96);
               return (
                 <span
                   key={m}
@@ -347,7 +376,6 @@ export default function InfraIntelligence() {
           <div className="bg-white rounded shadow p-3 space-y-2 overflow-hidden">
             {phases.map((p) => {
               const pBar = barStyle(p.start, p.end);
-
               return (
                 <div key={p.name}>
                   <div className="flex gap-3 items-center mb-1">
@@ -436,6 +464,51 @@ Progress: ${t.percentComplete}%`}
           </div>
         </div>
       )}
+
+      {/* ================= INFRA HEALTH SNAPSHOT (APPENDED) ================= */}
+      <div className="mt-6 bg-white rounded shadow p-4">
+        <h3 className="text-sm font-semibold mb-3">
+          Infra Health Snapshot
+        </h3>
+
+        <div className="grid grid-cols-4 gap-4 text-xs">
+          <div>
+            <div className="text-gray-500">Execution Health</div>
+            <div className="text-lg font-semibold text-red-600">
+              {infraHealth.executionHealth}%
+            </div>
+          </div>
+
+          <div>
+            <div className="text-gray-500">
+              At-Risk Infra Phases
+            </div>
+            <button
+              onClick={applyAtRiskFilter}
+              className="text-lg font-semibold text-red-600 underline"
+            >
+              {infraHealth.atRiskCount}
+            </button>
+          </div>
+
+          <div>
+            <div className="text-gray-500">Critical Blockers</div>
+            <button
+              onClick={applyBlockedFilter}
+              className="text-lg font-semibold text-red-700 underline"
+            >
+              {infraHealth.blockedCount}
+            </button>
+          </div>
+
+          <div>
+            <div className="text-gray-500">Delivery Confidence</div>
+            <div className="text-lg font-semibold text-red-600">
+              {infraHealth.confidence}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
