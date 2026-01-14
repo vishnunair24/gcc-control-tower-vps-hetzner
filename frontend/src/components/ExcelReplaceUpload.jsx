@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import axios from "axios";
 
 export default function ExcelReplaceUpload({
-  endpoint = `${API_BASE_URL}/excel/replace`,
+  endpoint = "http://localhost:3001/excel/replace",
   confirmText = "This will completely replace ALL existing data. Continue?",
   onSuccess,
 }) {

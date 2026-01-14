@@ -53,7 +53,7 @@ export default function InfraTracker() {
   // Load Infra Tasks
   // =========================
   const loadTasks = async () => {
-    const res = await axios.get(`${API_BASE_URL}/infra-tasks`);
+    const res = await axios.get("http://localhost:3001/infra-tasks");
     setTasks(res.data || []);
   };
 
@@ -115,7 +115,7 @@ export default function InfraTracker() {
 
   const saveEdit = async () => {
     await axios.put(
-      `${API_BASE_URL}/infra-tasks/${editRowId}`,
+      `http://localhost:3001/infra-tasks/${editRowId}`,
       editData
     );
     setEditRowId(null);
@@ -152,7 +152,7 @@ export default function InfraTracker() {
     const payload = normalizePayload(row);
     delete payload._tempId;
 
-    await axios.post(`${API_BASE_URL}/infra-tasks`, payload);
+    await axios.post("http://localhost:3001/infra-tasks", payload);
 
     setNewRows((prev) => prev.filter((r) => r._tempId !== row._tempId));
     loadTasks();
@@ -162,7 +162,7 @@ export default function InfraTracker() {
     for (const row of newRows) {
       const payload = normalizePayload(row);
       delete payload._tempId;
-      await axios.post(`${API_BASE_URL}/infra-tasks`, payload);
+      await axios.post("http://localhost:3001/infra-tasks", payload);
     }
     setNewRows([]);
     loadTasks();
@@ -221,7 +221,7 @@ export default function InfraTracker() {
         {/* LEFT SIDE */}
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           <ExcelReplaceUpload
-            endpoint={`${API_BASE_URL}/excel/infra-replace`}
+            endpoint={"http://localhost:3001/excel/infra-replace"}
             confirmText="This will completely replace ALL Infra Setup data. Continue?"
             onSuccess={() => {
               loadTasks();

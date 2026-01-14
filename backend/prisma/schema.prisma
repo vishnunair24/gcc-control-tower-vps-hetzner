@@ -36,18 +36,105 @@ model Task {
 // INFRA SETUP TRACKER (UPDATED)
 // ==============================
 model InfraTask {
-  id              Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   infraPhase      String
   taskName        String
   status          String
   percentComplete Int
 
-  startDate       DateTime
-  endDate         DateTime
+  startDate DateTime
+  endDate   DateTime
 
-  owner           String
+  owner String
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==============================
+// AUTH & AUDIT MODELS
+// ==============================
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  name              String?
+  signupType        String? // 'customer' or 'employee'
+  customerName      String?
+  phone             String?
+  country           String?
+  place             String?
+  approved          Boolean   @default(false)
+  declined          Boolean   @default(false)
+  password          String? // bcrypt hash
+  role              String    @default("user")
+  disabled          Boolean   @default(false)
+  mustSetPassword   Boolean   @default(false)
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // one-to-one relations to role-specific tables
+  employee Employee?
+  customer Customer?
+
+  sessions Session[]
+  audits   AuditLog[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    Int?
+  action    String
+  entity    String
+  entityId  Int?
+  details   String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+}
+
+// Separate tables for Employees and Customers to store role-specific ids
+model Employee {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+
+  // duplicate key user fields for employee context
+  name      String?
+  email     String?
+  phone     String?
+  country   String?
+  place     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       Int      @unique
+
+  // duplicate key user fields for customer context
+  name         String?
+  email        String?
+  customerName String?
+  phone        String?
+  country      String?
+  place        String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

@@ -6,6 +6,7 @@ import Tracker from "./pages/Tracker";
 import ProgramIntelligence from "./pages/ProgramIntelligence";
 import InfraTracker from "./pages/InfraTracker";
 import InfraIntelligence from "./pages/InfraIntelligence";
+import AdminApprovals from "./pages/AdminApprovals";
 
 import summitLogo from "./assets/summit-logo.png";
 
@@ -73,6 +74,9 @@ function App() {
               path="/infra-intelligence"
               element={<InfraIntelligence />}
             />
+
+            {/* Admin: pending approvals */}
+            <Route path="/admin-approvals" element={<AdminApprovals />} />
           </Routes>
         </main>
       </div>

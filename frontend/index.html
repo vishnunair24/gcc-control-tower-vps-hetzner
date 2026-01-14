@@ -8,6 +8,38 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Silent session check: if user not authenticated, redirect to standalone login page.
+      (function () {
+        const path = window.location.pathname;
+        if (path === "/login.html" || path === "/password-set.html") return;
+
+        async function check() {
+          try {
+            const res = await fetch("http://localhost:3001/auth/me", { credentials: "include" });
+            if (!res.ok) {
+              window.location.href = "/login.html";
+            }
+          } catch (e) {
+            console.error("Session check failed:", e);
+            window.location.href = "/login.html";
+          }
+        }
+
+        // initial check before app loads
+        check();
+
+        // periodic heartbeat: enforce logout if server becomes unreachable or session invalid
+        const interval = setInterval(() => {
+          // only run heartbeat on app routes
+          if (window.location.pathname === "/login.html" || window.location.pathname === "/password-set.html") return;
+          check();
+        }, 30 * 1000); // every 30s
+
+        // clear if navigating to login
+        window.addEventListener('beforeunload', () => clearInterval(interval));
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

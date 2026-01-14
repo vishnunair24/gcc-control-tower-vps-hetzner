@@ -41,7 +41,7 @@ export default function ProgramIntelligence() {
 
   // ================= LOAD DATA =================
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/tasks`).then((res) => {
+    axios.get("http://localhost:3001/tasks").then((res) => {
       setTasks(res.data || []);
     });
   }, []);

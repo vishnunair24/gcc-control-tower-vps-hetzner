@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pending Signups — Admin (Standalone)</title>
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:#f3f6f9;margin:0;padding:20px}
+    .wrap{max-width:960px;margin:20px auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px 10px;border-bottom:1px solid #eef2f7;text-align:left}
+    th{background:#fbfcfd;font-weight:600}
+    button{background:#0593c6;color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer}
+    .danger{background:#ef4444}
+    .muted{color:#64748b;font-size:0.9rem}
+    .small{font-size:0.9rem}
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    input.key{padding:8px;border-radius:6px;border:1px solid #e2e8f0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Pending Signups — Standalone Admin UI</h2>
+    <p class="muted">This standalone page is for development convenience. It requires a valid admin key (set in the backend as <code>ADMIN_UI_KEY</code> environment variable).</p>
+
+    <div class="controls">
+      <input id="adminkey" class="key" placeholder="Enter admin key or ?key=..." />
+      <button id="load">Load Pending</button>
+      <div id="msg" class="muted"></div>
+    </div>
+
+    <div style="overflow:auto;margin-top:12px">
+      <table id="tbl">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Type</th><th>Customer</th><th>Phone</th><th>Country</th><th>Place</th><th>Submitted</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const msg = document.getElementById('msg');
+    const keyInput = document.getElementById('adminkey');
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('key')) keyInput.value = params.get('key');
+
+    async function loadPending(){
+      const k = keyInput.value.trim();
+      if (!k) { msg.textContent = 'Enter admin key'; return; }
+      msg.textContent = 'Loading...';
+      try{
+        const res = await fetch('http://localhost:3001/auth/pending-public?key=' + encodeURIComponent(k));
+        if (!res.ok){ const d = await res.json().catch(()=>({})); msg.textContent = d.error || 'Failed to load'; return; }
+        const list = await res.json();
+        const tbody = document.querySelector('#tbl tbody');
+        tbody.innerHTML = '';
+        if (!list.length) { tbody.innerHTML = '<tr><td colspan="10" class="small muted">No pending signups</td></tr>'; msg.textContent = ''; return; }
+        for(const u of list){
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${u.id}</td>
+            <td>${u.name || ''}</td>
+            <td>${u.email}</td>
+            <td>${u.signupType || ''}</td>
+            <td>${u.customerName || ''}</td>
+            <td>${u.phone || ''}</td>
+            <td>${u.country || ''}</td>
+            <td>${u.place || ''}</td>
+            <td>${new Date(u.createdAt).toLocaleString()}</td>
+            <td><button data-id="${u.id}" class="approve">Approve</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        msg.textContent = '';
+      }catch(err){ msg.textContent = 'Network error'; }
+    }
+
+    document.getElementById('load').addEventListener('click', loadPending);
+
+    document.addEventListener('click', async (e)=>{
+      if (e.target && e.target.matches('button.approve')){
+        const id = e.target.getAttribute('data-id');
+        const k = keyInput.value.trim();
+        if (!k) { alert('Enter admin key'); return; }
+        e.target.disabled = true; e.target.textContent = 'Approving...';
+        try{
+          const res = await fetch('http://localhost:3001/auth/approve-public/' + id + '?key=' + encodeURIComponent(k), { method: 'POST' });
+          const data = await res.json().catch(()=>({}));
+          if (!res.ok){ alert(data.error || 'Failed to approve'); e.target.disabled = false; e.target.textContent = 'Approve'; return; }
+          alert('Approved. Reset token:\n' + (data.resetToken || 'N/A') + '\n\nToken also emailed/logged on server.');
+          loadPending();
+        }catch(err){ alert('Network error'); e.target.disabled = false; e.target.textContent = 'Approve'; }
+      }
+    });
+
+    // Auto-load if key provided via query
+    if (keyInput.value) loadPending();
+  </script>
+</body>
+</html>

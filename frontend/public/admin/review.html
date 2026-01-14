@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin — Review Pending Signups</title>
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:#f3f6f9;margin:0;padding:20px}
+    .wrap{max-width:980px;margin:24px auto;background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px 10px;border-bottom:1px solid #eef2f7;text-align:left}
+    th{background:#fbfcfd;font-weight:600}
+    button{background:#0593c6;color:#fff;border:none;padding:8px 10px;border-radius:6px;cursor:pointer}
+    .danger{background:#ef4444}
+    .muted{color:#64748b;font-size:0.9rem}
+    .small{font-size:0.9rem}
+    .login{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .login input{padding:8px;border-radius:6px;border:1px solid #dbe6ef}
+    .login button{padding:8px 12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Pending Signups — Admin Review</h2>
+    <p class="muted">This standalone page allows an admin to sign in here and review pending signups.</p>
+
+    <div id="loginArea">
+      <div style="margin-bottom:6px" class="muted small">Sign in as admin</div>
+      <div class="login">
+        <input id="adminEmail" type="email" placeholder="admin@company.com" />
+        <input id="adminPassword" type="password" placeholder="password" />
+        <button id="adminLogin">Sign in</button>
+        <div id="loginMsg" class="muted"></div>
+      </div>
+    </div>
+
+    <div id="msg" class="muted"></div>
+    <div style="overflow:auto;margin-top:12px">
+      <table id="tbl">
+        <thead>
+          <tr><th>ID</th><th>Name</th><th>Email</th><th>Type</th><th>Customer</th><th>Phone</th><th>Country</th><th>Place</th><th>Submitted</th><th>Action</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadPending(){
+      const msg = document.getElementById('msg');
+      msg.textContent = 'Loading...';
+      try{
+        const res = await fetch('http://localhost:3001/auth/pending', { credentials: 'include' });
+        if (!res.ok) {
+          const d = await res.json().catch(()=>({}));
+          // Show login area if unauthorized
+          if (res.status === 401 || res.status === 403) {
+            msg.textContent = 'Not signed in as admin. Use the sign-in form above.';
+            document.getElementById('loginArea').style.display = '';
+            return;
+          }
+          msg.textContent = d.error || 'Failed to load pending signups';
+          return;
+        }
+        const list = await res.json();
+        const tbody = document.querySelector('#tbl tbody');
+        tbody.innerHTML = '';
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="10" class="small muted">No pending signups</td></tr>';
+          msg.textContent = '';
+          return;
+        }
+        for(const u of list){
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${u.id}</td>
+            <td>${u.name || ''}</td>
+            <td>${u.email}</td>
+            <td>${u.signupType || ''}</td>
+            <td>${u.customerName || ''}</td>
+            <td>${u.phone || ''}</td>
+            <td>${u.country || ''}</td>
+            <td>${u.place || ''}</td>
+            <td>${new Date(u.createdAt).toLocaleString()}</td>
+            <td><button data-id="${u.id}" class="approve">Approve</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        msg.textContent = '';
+      }catch(err){
+        msg.textContent = 'Network error';
+      }
+    }
+
+    document.addEventListener('click', async (e)=>{
+      if (e.target && e.target.matches('button.approve')){
+        const id = e.target.getAttribute('data-id');
+        e.target.disabled = true; e.target.textContent = 'Approving...';
+        try{
+          const res = await fetch('http://localhost:3001/auth/approve/' + id, { method: 'POST', credentials: 'include' });
+          const data = await res.json().catch(()=>({}));
+          if (!res.ok) {
+            alert(data.error || 'Failed to approve');
+            e.target.disabled = false; e.target.textContent = 'Approve';
+            return;
+          }
+          alert('Approved. Reset token:\n' + (data.resetToken || 'N/A') + '\n\nIf SMTP is configured the user will receive an email; otherwise check the server logs.');
+          loadPending();
+        }catch(err){
+          alert('Network error');
+          e.target.disabled = false; e.target.textContent = 'Approve';
+        }
+      }
+    });
+
+    document.getElementById('adminLogin').addEventListener('click', async ()=>{
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const loginMsg = document.getElementById('loginMsg');
+      loginMsg.textContent = 'Signing in...';
+      try{
+        const res = await fetch('http://localhost:3001/auth/login', {
+          method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include',
+          body: JSON.stringify({ email, password, loginAs: 'admin' })
+        });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) { loginMsg.textContent = data.error || 'Sign in failed'; return; }
+        loginMsg.textContent = 'Signed in';
+        document.getElementById('loginArea').style.display = 'none';
+        await loadPending();
+      }catch(err){ loginMsg.textContent = 'Network error'; }
+    });
+
+    // initial attempt to load (if already signed in)
+    loadPending();
+  </script>
+</body>
+</html>

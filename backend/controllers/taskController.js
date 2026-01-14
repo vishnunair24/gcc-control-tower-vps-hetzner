@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { createAudit } = require("../utils/audit");
 
 /**
  * GET all tasks
@@ -46,6 +47,8 @@ exports.updateTask = async (req, res) => {
     });
 
     res.json(updated);
+    // async audit (don't block response)
+    createAudit(req, { action: "update", entity: "Task", entityId: id, details: updated });
   } catch (err) {
     console.error("❌ Update failed:", err);
     res.status(500).json({

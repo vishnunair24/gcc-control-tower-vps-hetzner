@@ -55,6 +55,12 @@ router.post("/", async (req, res) => {
     });
 
     res.status(201).json(task);
+    try {
+      const { createAudit } = require("../utils/audit");
+      createAudit(req, { action: "create", entity: "InfraTask", entityId: task.id, details: task });
+    } catch (e) {
+      console.error("Audit failed:", e);
+    }
   } catch (error) {
     console.error("❌ Create infra task failed:", error);
     res.status(500).json({ error: "Failed to create infra task" });
@@ -92,6 +98,12 @@ router.put("/:id", async (req, res) => {
     });
 
     res.json(task);
+    try {
+      const { createAudit } = require("../utils/audit");
+      createAudit(req, { action: "update", entity: "InfraTask", entityId: id, details: task });
+    } catch (e) {
+      console.error("Audit failed:", e);
+    }
   } catch (error) {
     console.error("❌ Update infra task failed:", error);
     res.status(500).json({ error: "Failed to update infra task" });

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Summit theme CSS (public CDN links from their site) -->
+  <link rel="stylesheet" href="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/css/animate.min.css">
+  <link rel="stylesheet" href="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/css/boxicons.min.css">
+  <link rel="stylesheet" href="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/css/style.css">
+
+  <title>Sign in — GCC Control Tower</title>
+  <style>
+    /* Small overrides to position the login card and adapt the hero for our standalone page */
+    body { overflow-x: hidden; }
+    .page-banner.login-hero {
+      background-image: none;
+      background: linear-gradient(135deg,#071627 0%, #032c44 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 16px; /* tighter spacing */
+      box-sizing: border-box;
+      overflow: hidden;
+      font-family: Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+    }
+
+    /* translucent overlay */
+    .page-banner.login-hero::after{
+      content: "";
+      position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,10,20,0.25), rgba(0,10,20,0.35));
+      z-index:0;
+    }
+
+    /* cover left side of hero to hide promo text while keeping background image */
+    .page-banner.login-hero::before{
+      /* subtle left fade for depth */
+      content: "";
+      position:absolute;top:0;bottom:0;left:0;width:30%;
+      background: linear-gradient(90deg, rgba(3,6,10,0.96) 0%, rgba(3,6,10,0.88) 30%, rgba(3,6,10,0.6) 60%, rgba(3,6,10,0.0) 100%);
+      backdrop-filter: blur(2px);
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .login-panel {
+      position: relative; z-index: 2;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.98);
+      border-radius: 8px;
+      padding: 16px 16px;
+      box-shadow: 0 10px 28px rgba(2,6,23,0.40);
+      border: 1px solid rgba(15,23,42,0.06);
+    }
+
+    /* center wrapper to ensure precise centering */
+    .center-wrap{height:100%;display:flex;align-items:center;justify-content:center}
+    .center-inner{width:100%;display:flex;align-items:center;justify-content:center}
+
+    .login-panel h3{margin-top:0;margin-bottom:6px;font-weight:700;font-size:1rem;line-height:1.15}
+    .login-panel p{margin:0 0 10px;color:#64748b;font-size:0.92rem}
+
+    .form-control{border-radius:8px;padding:9px 10px;border:1px solid rgba(15,23,42,0.08);font-size:0.95rem}
+    .btn-primary{background:#0593c6;border-color:#0593c6;padding:9px 12px;border-radius:8px;font-weight:600}
+    .btn-signup{background:#f97316;color:#fff;border:none;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer}
+    .btn-danger{background:#ef4444;color:#fff;border:none;padding:9px 12px;border-radius:8px;font-weight:600}
+
+    /* Keep buttons same size as before and center their text */
+    .login-panel .btn-primary,
+    .login-panel .btn-danger,
+    .login-panel .btn-signup {
+      width: 100%;
+      display: inline-block;
+      text-align: center;
+    }
+
+    @media (max-width: 900px){
+      .login-panel{margin: 0 12px;max-width:360px}
+      .page-banner.login-hero::before{display:none}
+    }
+
+    /* pull header out of flow so it doesn't affect centering */
+    .header{position:absolute;top:14px;left:0;right:0;z-index:3;padding:0 16px}
+
+    /* header small adjustments */
+    .header .navbar-brand img{height:44px}
+  </style>
+</head>
+<body>
+  <!-- Header (logo only to match site) -->
+  <section class="header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-12 xs-center col-md-12 col-12">
+          <nav class="navbar navbar-expand-lg navbar-light">
+            <a class="navbar-brand" href="https://www.summitconsulting.in" target="_blank" rel="noopener">
+              <img src="https://www.summitconsulting.in/wp-content/uploads/2024/10/White-logo-copy-2@2x-e1728977032828.png" alt="Summit" />
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero with centered login card -->
+  <section class="page-banner login-hero">
+    <div class="container center-wrap">
+      <div class="center-inner">
+        <div class="login-panel" role="region" aria-labelledby="login-title">
+          <h3 id="login-title">Sign in to GCC Control Tower</h3>
+          <!-- <p>Enter your corporate email and password to continue.</p> -->
+
+          <form id="loginForm">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" class="form-control" required placeholder="you@company.com" />
+            </div>
+
+            <div class="form-group" style="margin-top:8px;">
+              <div style="font-size:0.85rem;color:#64748b;margin-bottom:6px">Login as:</div>
+              <select id="loginAs" class="form-control" style="margin-bottom:6px">
+                <option value="admin">Admin</option>
+                <option value="employee">Employee</option>
+                <option value="customer">Customer</option>
+              </select>
+            </div>
+
+              <div class="form-group" style="margin-top:6px;">
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" class="form-control" required placeholder="Enter your password" />
+            </div>
+
+            <div style="margin-top:14px;display:flex;gap:8px;flex-direction:column;">
+              <button type="submit" class="btn btn-primary">Sign in</button>
+              <a class="btn-danger" href="/password-set.html">Set password</a>
+              <a href="/signup.html" class="btn-signup" id="gotoSignup">Sign up</a>
+            </div>
+
+            <div id="msg" style="margin-top:10px;color:#b91c1c"></div>
+          </form>
+
+          <p style="font-size:0.88rem;color:#64748b;margin-top:10px">Contact your administrator to request access or password reset.</p>
+        </div>
+      </div>
+    </div>
+    <!-- decorative clouds removed to fully hide promotional content -->
+  </section>
+
+  <!-- Footer (minimal) -->
+  <section class="footer" style="background:transparent;padding:20px 0;color:#fff;">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <p style="color:#cbd5e1;margin:0">© 2024 Summit Consulting. All rights reserved</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('msg');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      try {
+          const loginAs = document.getElementById('loginAs').value;
+          const res = await fetch('http://localhost:3001/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, password, loginAs }),
+          });
+        const data = await res.json().catch(()=>({}));
+        if (res.ok) {
+          window.location.href = '/';
+          return;
+        }
+        if (res.status === 403 && data && data.mustSetPassword) {
+          window.location.href = '/password-set.html?token=' + encodeURIComponent(data.resetToken || '');
+          return;
+        }
+        msg.textContent = data.error || 'Login failed';
+      } catch (err) {
+        msg.textContent = 'Network error';
+      }
+    });
+      
+      // Signup panel logic
+      const toggle = document.getElementById('toggleSignup');
+      const panel = document.getElementById('signupPanel');
+      const suType = document.getElementById('suType');
+      const suCustomerWrap = document.getElementById('suCustomerNameWrap');
+      const suMsg = document.getElementById('suMsg');
+      toggle.addEventListener('click', ()=>{
+        if (panel.style.display === 'none') { panel.style.display = 'block'; toggle.textContent = 'Hide'; }
+        else { panel.style.display = 'none'; toggle.textContent = 'Sign up'; }
+      });
+      suType.addEventListener('change', ()=>{
+        if (suType.value === 'customer') suCustomerWrap.style.display = '';
+        else suCustomerWrap.style.display = 'none';
+      });
+      // init
+      if (suType.value !== 'customer') suCustomerWrap.style.display = 'none';
+
+      document.getElementById('submitSignup').addEventListener('click', async ()=>{
+        suMsg.textContent = 'Submitting...';
+        const body = {
+          signupType: suType.value,
+          customerName: document.getElementById('suCustomerName').value.trim(),
+          name: document.getElementById('suName').value.trim(),
+          email: document.getElementById('suEmail').value.trim(),
+          phone: document.getElementById('suPhone').value.trim(),
+          country: document.getElementById('suCountry').value.trim(),
+          place: document.getElementById('suPlace').value.trim(),
+        };
+        try{
+          const res = await fetch('http://localhost:3001/auth/signup', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+          const data = await res.json().catch(()=>({}));
+          if (res.ok){ suMsg.textContent = 'Submitted for approval. You will receive instructions once approved.'; return; }
+          suMsg.textContent = data.error || 'Failed to submit';
+        }catch(err){ suMsg.textContent = 'Network error'; }
+      });
+  </script>
+
+  <!-- Optional: load bootstrap JS from summit site for consistent components (not required) -->
+  <script src="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/js/jquery.min.js"></script>
+  <script src="https://www.summitconsulting.in/wp-content/themes/summit-consulting-services/assets/js/bootstrap.min.js"></script>
+</body>
+</html>

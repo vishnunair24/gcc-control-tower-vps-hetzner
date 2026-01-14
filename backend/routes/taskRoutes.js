@@ -60,6 +60,13 @@ router.post("/", async (req, res) => {
     });
 
     res.status(201).json(task);
+    // audit
+    try {
+      const { createAudit } = require("../utils/audit");
+      createAudit(req, { action: "create", entity: "Task", entityId: task.id, details: task });
+    } catch (e) {
+      console.error("Audit failed:", e);
+    }
   } catch (err) {
     console.error("❌ Create task failed:", err);
     res.status(500).json({ error: "Failed to create task" });
