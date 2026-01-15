@@ -14,12 +14,29 @@ const authController = require("./controllers/authController");
 
 const app = express();
 
-// CORS: reflect the incoming Origin and allow credentials.
-// Also handle preflight (OPTIONS) explicitly so browsers get
-// proper Access-Control-* headers before POST/GET.
-const corsConfig = { origin: true, credentials: true };
-app.use(cors(corsConfig));
-app.options("*", cors(corsConfig));
+// CORS: custom handler + cors helper to guarantee headers
+// are present for both simple and preflight requests.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+  }
+  next();
+});
+
+app.options("*", (req, res) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(204);
+});
 app.use(cookieParser());
 app.use(express.json());
 
