@@ -81,6 +81,16 @@ app.get("/health", (req, res) => {
   res.json({ status: "Backend running" });
 });
 
+// Global error handler to prevent unhandled errors from crashing
+// the server and to always return a JSON 500 response.
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(500).json({ error: "Internal server error" });
+});
+
 // app.listen(4000, () => {
 //   console.log("Server running on http://localhost:4000");
 // });
