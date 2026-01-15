@@ -26,7 +26,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.options("*", (req, res) => {
+// Express 5 uses a stricter path-to-regexp implementation that no longer
+// accepts "*" as a valid path pattern, so we use "/*" to match all paths
+// for OPTIONS (CORS preflight) requests.
+app.options("/*", (req, res) => {
   const origin = req.headers.origin;
   if (origin) {
     res.header("Access-Control-Allow-Origin", origin);
