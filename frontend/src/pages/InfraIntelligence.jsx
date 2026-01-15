@@ -29,8 +29,13 @@ export default function InfraIntelligence() {
         const role = res.data?.role;
 
         // Customers should not see Infra intelligence; redirect them
-        if (role === "customer") {
-          navigate("/dashboard", { replace: true });
+              } catch (err) {
+                const status = err?.response?.status;
+                if (status === 401 || status === 403) {
+                  window.location.href = "/login.html";
+                } else {
+                  console.error("/auth/me failed on infra-intelligence load", err);
+                }
           return;
         }
 

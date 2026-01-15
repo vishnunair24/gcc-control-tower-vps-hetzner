@@ -72,8 +72,13 @@ export default function InfraTracker() {
         if ((role === "employee" || role === "admin") && !customerName) {
           navigate("/employee-home", { replace: true });
         }
-      } catch {
-        window.location.href = "/login.html";
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          window.location.href = "/login.html";
+        } else {
+          console.error("/auth/me failed on infra-tracker load", err);
+        }
       }
     })();
   }, [navigate, customerName]);

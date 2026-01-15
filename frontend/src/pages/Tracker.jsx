@@ -79,9 +79,14 @@ export default function Tracker() {
         if ((role === "employee" || role === "admin") && !customerName) {
           navigate("/employee-home", { replace: true });
         }
-      } catch {
-        // If not authenticated, send to login
-        window.location.href = "/login.html";
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          // If not authenticated, send to login
+          window.location.href = "/login.html";
+        } else {
+          console.error("/auth/me failed on tracker load", err);
+        }
       }
     })();
   }, [navigate, customerName]);

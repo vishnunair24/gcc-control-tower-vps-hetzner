@@ -35,8 +35,13 @@ export default function ProgramIntelligence() {
         const role = res.data?.role;
 
         // Customers should only see Dashboard, not intelligence views
-        if (role === "customer") {
-          navigate("/dashboard", { replace: true });
+              } catch (err) {
+                const status = err?.response?.status;
+                if (status === 401 || status === 403) {
+                  window.location.href = "/login.html";
+                } else {
+                  console.error("/auth/me failed on program-intelligence load", err);
+                }
           return;
         }
 
