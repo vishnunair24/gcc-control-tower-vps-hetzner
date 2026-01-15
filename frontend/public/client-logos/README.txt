@@ -11,4 +11,4 @@ Expected filenames (update images in-place to change logos):
  - Comply.png
  
 These will be referenced from the employee landing page and header as /client-logos/<name>.png, matching the client names.
---------------
+-----------------
