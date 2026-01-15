@@ -14,28 +14,10 @@ const authController = require("./controllers/authController");
 
 const app = express();
 
-// Robust CORS config: supports multiple origins from env and
-// never sends wildcard "*" when using credentials.
-// Example env: CLIENT_ORIGIN="http://localhost:5173,http://localhost:4173"
-const rawOrigins = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-const allowedOrigins = rawOrigins.split(",").map((o) => o.trim()).filter(Boolean);
-
-const corsOptions = { credentials: true };
-
-if (allowedOrigins.includes("*")) {
-  // Reflect request origin instead of sending "*" so that
-  // credentialed requests remain valid even when allowing all origins.
-  corsOptions.origin = true;
-} else {
-  corsOptions.origin = function (origin, callback) {
-    // Allow non-browser / same-origin requests with no Origin header
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(null, false);
-  };
-}
-
-app.use(cors(corsOptions));
+// CORS: reflect the incoming Origin and allow credentials.
+// This avoids wildcard "*" and works for dev, Render, and Vercel
+// without needing CLIENT_ORIGIN to be perfectly configured.
+app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 
