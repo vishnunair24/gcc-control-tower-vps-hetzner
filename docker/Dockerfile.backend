@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install backend dependencies
+COPY backend/package*.json ./
+RUN npm ci --omit=dev || npm install --only=production
+
+# Copy backend source
+COPY backend/ ./
+
+# Expose backend port (matches PORT env; default 3000 in .env.example)
+EXPOSE 3000
+
+# Run migrations then start server
+CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]

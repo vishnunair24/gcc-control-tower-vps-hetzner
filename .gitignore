@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+
+# Root-level env files
+.env
+.env.*
+
+# Backend env (backend has its own .gitignore too)
+backend/.env
+backend/.env.*
+
+# Frontend env
+frontend/.env
+frontend/.env.*

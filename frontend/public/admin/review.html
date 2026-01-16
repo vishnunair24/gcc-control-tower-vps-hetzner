@@ -49,7 +49,7 @@
     const API_BASE_URL =
       window.location.hostname === 'localhost'
         ? 'http://localhost:4000'
-        : 'https://gcc-control-tower-login.onrender.com';
+        : '/api';
     async function loadPending(){
       const msg = document.getElementById('msg');
       msg.textContent = 'Loading...';

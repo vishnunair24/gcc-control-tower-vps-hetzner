@@ -35,13 +35,8 @@ export default function ProgramIntelligence() {
         const role = res.data?.role;
 
         // Customers should only see Dashboard, not intelligence views
-              } catch (err) {
-                const status = err?.response?.status;
-                if (status === 401 || status === 403) {
-                  window.location.href = "/login.html";
-                } else {
-                  console.error("/auth/me failed on program-intelligence load", err);
-                }
+        if (role === "customer") {
+          navigate("/dashboard", { replace: true });
           return;
         }
 
@@ -49,8 +44,13 @@ export default function ProgramIntelligence() {
         if ((role === "employee" || role === "admin") && !customerName) {
           navigate("/employee-home", { replace: true });
         }
-      } catch {
-        window.location.href = "/login.html";
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          window.location.href = "/login.html";
+        } else {
+          console.error("/auth/me failed on program-intelligence load", err);
+        }
       }
     })();
   }, [navigate, customerName]);

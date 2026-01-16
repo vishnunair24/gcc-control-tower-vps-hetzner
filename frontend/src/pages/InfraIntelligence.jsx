@@ -29,13 +29,8 @@ export default function InfraIntelligence() {
         const role = res.data?.role;
 
         // Customers should not see Infra intelligence; redirect them
-              } catch (err) {
-                const status = err?.response?.status;
-                if (status === 401 || status === 403) {
-                  window.location.href = "/login.html";
-                } else {
-                  console.error("/auth/me failed on infra-intelligence load", err);
-                }
+        if (role === "customer") {
+          navigate("/dashboard", { replace: true });
           return;
         }
 
@@ -43,8 +38,13 @@ export default function InfraIntelligence() {
         if ((role === "employee" || role === "admin") && !customerName) {
           navigate("/employee-home", { replace: true });
         }
-      } catch {
-        window.location.href = "/login.html";
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 401 || status === 403) {
+          window.location.href = "/login.html";
+        } else {
+          console.error("/auth/me failed on infra-intelligence load", err);
+        }
       }
     })();
   }, [navigate, customerName]);
