@@ -3,8 +3,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const mailer = require('../utils/mailer');
 const { normalizeCustomerName, defaultLogoUrlForCustomer } = require("../utils/customerName");
-
-const COOKIE_NAME = "sid";
+const { COOKIE_NAME, COOKIE_OPTIONS } = require("../config/cookie");
 
 exports.registerAdmin = async (req, res) => {
   try {
@@ -62,27 +61,8 @@ exports.login = async (req, res) => {
       : new Date("9999-12-31T23:59:59.999Z");
     await prisma.session.create({ data: { token, userId: user.id, expiresAt } });
 
-    const maxAge = process.env.SESSION_MAX_AGE
-      ? Number(process.env.SESSION_MAX_AGE)
-      : idleMs || 365 * 24 * 60 * 60 * 1000; // default cookie: 1 year
-
-    // Cookie settings for single-origin (nginx + backend on same host).
-    // For your current HTTP-only VPS setup we must NOT force "secure"
-    // in production, otherwise browsers will drop the cookie.
-    //
-    // - Default SameSite to "lax" for same-origin
-    // - Allow overriding via COOKIE_SAME_SITE
-    // - Only mark Secure when COOKIE_SECURE=true
-    const sameSite = process.env.COOKIE_SAME_SITE || "lax";
-    const secure = process.env.COOKIE_SECURE === "true";
-
-    res.cookie(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite,
-      secure,
-      maxAge,
-      path: "/",
-    });
+    // Use centralized cookie options (always consistent, path: "/")
+    res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
 
     res.json({ id: user.id, email: user.email, role: user.role });
   } catch (err) {
@@ -96,7 +76,8 @@ exports.logout = async (req, res) => {
     const token = req.cookies[COOKIE_NAME];
     if (token) {
       await prisma.session.deleteMany({ where: { token } });
-      res.clearCookie(COOKIE_NAME);
+      // Ensure we clear the same cookie we set (same name + path)
+      res.clearCookie(COOKIE_NAME, { path: COOKIE_OPTIONS.path || "/" });
     }
     res.json({ ok: true });
   } catch (err) {
