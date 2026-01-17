@@ -1,21 +1,33 @@
+# =========================
 # Build stage
-FROM node:20-alpine AS build
+# =========================
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Copy package files first (better caching)
 COPY frontend/package*.json ./
-RUN npm ci --omit=dev || npm install
 
-COPY frontend/ ./
+# Install ALL dependencies (including devDependencies like vite)
+RUN npm install
+
+# Copy the rest of the frontend source
+COPY frontend/ .
+
+# Build the frontend (vite build)
 RUN npm run build
 
-# Serve built assets with nginx
+
+# =========================
+# Runtime stage (nginx)
+# =========================
 FROM nginx:alpine
 
-# Copy built assets
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy built assets from builder
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Basic nginx config for static frontend in this container
-# (main reverse proxy is handled by the top-level nginx service)
-
+# Expose port 80
 EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
