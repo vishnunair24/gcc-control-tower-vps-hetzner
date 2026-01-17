@@ -1,16 +1,22 @@
 FROM node:20-alpine
 
+# Install required system dependencies for Prisma
+RUN apk add --no-cache openssl libc6-compat
+
 WORKDIR /app
 
-# Install backend dependencies
+# Copy package files
 COPY backend/package*.json ./
-RUN npm ci --omit=dev || npm install --only=production
+
+# Install dependencies
+RUN npm install
 
 # Copy backend source
-COPY backend/ ./
+COPY backend/ .
 
-# Expose backend port (matches PORT env; default 3000 in .env.example)
+# Generate Prisma client
+RUN npx prisma generate
+
 EXPOSE 3000
 
-# Run migrations then start server
-CMD ["sh", "-c", "npx prisma migrate deploy && node server.js"]
+CMD ["npm", "run", "start"]
