@@ -4,24 +4,17 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: postgres
-    restart: unless-stopped
-    env_file:
-      - .env
+    env_file: .env
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   backend:
     container_name: backend
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
-    env_file:
-      - .env
-    environment:
-      NODE_ENV: production
-      PORT: 3000
+    env_file: .env
     depends_on:
       - postgres
     restart: unless-stopped
@@ -33,4 +26,9 @@ services:
       dockerfile: docker/Dockerfile.frontend
     ports:
       - "80:80"
+    depends_on:
+      - backend
     restart: unless-stopped
+
+volumes:
+  postgres-data:
