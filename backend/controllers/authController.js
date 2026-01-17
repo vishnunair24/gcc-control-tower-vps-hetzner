@@ -66,15 +66,15 @@ exports.login = async (req, res) => {
       ? Number(process.env.SESSION_MAX_AGE)
       : idleMs || 365 * 24 * 60 * 60 * 1000; // default cookie: 1 year
 
-    // Default to SameSite=None so that cookies work across
-    // separate frontend/backend domains (e.g. Vercel + Render).
-    // This can be overridden via COOKIE_SAME_SITE if needed.
-    const sameSite = process.env.COOKIE_SAME_SITE || "none";
-    // For SameSite=None the cookie MUST be Secure in browsers.
-    const secure =
-      process.env.COOKIE_SECURE === "true" ||
-      sameSite === "none" ||
-      process.env.NODE_ENV === "production";
+    // Cookie settings for single-origin (nginx + backend on same host).
+    // For your current HTTP-only VPS setup we must NOT force "secure"
+    // in production, otherwise browsers will drop the cookie.
+    //
+    // - Default SameSite to "lax" for same-origin
+    // - Allow overriding via COOKIE_SAME_SITE
+    // - Only mark Secure when COOKIE_SECURE=true
+    const sameSite = process.env.COOKIE_SAME_SITE || "lax";
+    const secure = process.env.COOKIE_SECURE === "true";
 
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
