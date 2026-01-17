@@ -74,10 +74,11 @@ export default function InfraTracker() {
         }
       } catch (err) {
         const status = err?.response?.status;
-        if (status === 401 || status === 403) {
+        if (status === 401 || status === 403 || !status) {
           window.location.href = "/login.html";
         } else {
           console.error("/auth/me failed on infra-tracker load", err);
+          window.location.href = "/login.html";
         }
       }
     })();

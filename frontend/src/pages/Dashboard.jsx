@@ -87,10 +87,14 @@ function Dashboard() {
         }
       } catch (err) {
         const status = err?.response?.status;
-        if (status === 401 || status === 403) {
+        // For initial page load, treat any failure to
+        // load /auth/me as unauthenticated and send the
+        // user to the login page.
+        if (status === 401 || status === 403 || !status) {
           window.location.href = "/login.html";
         } else {
           console.error("/auth/me failed on dashboard load", err);
+          window.location.href = "/login.html";
         }
       }
     })();

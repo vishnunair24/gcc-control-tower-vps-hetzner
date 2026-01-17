@@ -81,11 +81,13 @@ export default function Tracker() {
         }
       } catch (err) {
         const status = err?.response?.status;
-        if (status === 401 || status === 403) {
-          // If not authenticated, send to login
+        // For tracker, any failure to resolve auth should
+        // be treated as unauthenticated.
+        if (status === 401 || status === 403 || !status) {
           window.location.href = "/login.html";
         } else {
           console.error("/auth/me failed on tracker load", err);
+          window.location.href = "/login.html";
         }
       }
     })();
