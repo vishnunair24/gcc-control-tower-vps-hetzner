@@ -1,39 +1,40 @@
 version: "3.9"
 
 services:
-  # PostgreSQL database service removed/commented out because
-  # Postgres is already running in Docker on the VPS.
-  # If you ever want to run Postgres inside this compose
-  # file again, uncomment and adjust as needed.
-  # postgres:
-  #   image: postgres:16-alpine
-  #   environment:
-  #     POSTGRES_DB: gcccontroltower
-  #     POSTGRES_USER: gccuser
-  #     POSTGRES_PASSWORD: "#gccuser!123"
-  #   volumes:
-  #     - db-data:/var/lib/postgresql/data
-  #   restart: unless-stopped
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   backend:
+    container_name: backend
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
     env_file:
-      - backend/.env
+      - .env
     environment:
-      # Fallbacks if not defined in backend/.env
       NODE_ENV: production
       PORT: 3000
+    depends_on:
+      - postgres
     restart: unless-stopped
 
   frontend:
+    container_name: frontend
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
     restart: unless-stopped
 
   nginx:
+    container_name: nginx
     image: nginx:alpine
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -44,9 +45,5 @@ services:
       - "80:80"
     restart: unless-stopped
 
-  # Named volume for Postgres data was used by the commented
-  # postgres service above. It's left here commented for
-  # reference; your existing Postgres container manages its
-  # own storage.
-  # volumes:
-  #   db-data:
+volumes:
+  postgres-data:
