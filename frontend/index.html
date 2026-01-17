@@ -12,7 +12,16 @@
       // Silent session check: if user not authenticated, redirect to standalone login page.
       (function () {
         const path = window.location.pathname;
-        if (path === "/login.html" || path === "/password-set.html") return;
+        // Do not run the heartbeat on the standalone auth pages
+        // or on the employee landing page. That page has its own
+        // auth guards when navigating into dashboards.
+        if (
+          path === "/login.html" ||
+          path === "/password-set.html" ||
+          path === "/employee-home"
+        ) {
+          return;
+        }
 
         async function check() {
           try {
