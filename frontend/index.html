@@ -11,53 +11,11 @@
     <script>
       // Silent session check: if user not authenticated, redirect to standalone login page.
       (function () {
-        const path = window.location.pathname;
-        // Do not run the heartbeat on the standalone auth pages
-        // or on the employee landing page. That page has its own
-        // auth guards when navigating into dashboards.
-        if (
-          path === "/login.html" ||
-          path === "/password-set.html" ||
-          path === "/employee-home"
-        ) {
-          return;
-        }
-
-        async function check() {
-          try {
-            const API_BASE_URL =
-              window.location.hostname === "localhost"
-                ? "http://localhost:4000"
-                : "/api";
-
-            const res = await fetch(API_BASE_URL + "/auth/me", { credentials: "include" });
-
-            // Only force logout when the server explicitly says the
-            // user is not authenticated or forbidden. Other errors
-            // (like transient 5xx or network glitches) should not
-            // immediately kick the user out.
-            if (res.status === 401 || res.status === 403) {
-              window.location.href = "/login.html";
-            }
-          } catch (e) {
-            // Log the error but do not redirect; this avoids random
-            // logouts when the backend is briefly unavailable.
-            console.error("Session check failed:", e);
-          }
-        }
-
-        // initial check before app loads
-        check();
-
-        // periodic heartbeat: enforce logout if server becomes unreachable or session invalid
-        const interval = setInterval(() => {
-          // only run heartbeat on app routes
-          if (window.location.pathname === "/login.html" || window.location.pathname === "/password-set.html") return;
-          check();
-        }, 30 * 1000); // every 30s
-
-        // clear if navigating to login
-        window.addEventListener('beforeunload', () => clearInterval(interval));
+        // Heartbeat-based global redirect disabled. Per-page React
+        // guards (/dashboard, trackers, intelligence pages) now own
+        // the responsibility for checking /auth/me and sending the
+        // user to /login.html when needed.
+        return;
       })();
     </script>
     <script type="module" src="/src/main.jsx"></script>
