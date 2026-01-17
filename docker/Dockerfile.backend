@@ -1,14 +1,17 @@
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Install required system dependencies for Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Install required system deps for Prisma
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy package files
 COPY backend/package*.json ./
 
-# Install dependencies
+# Install deps
 RUN npm install
 
 # Copy backend source
