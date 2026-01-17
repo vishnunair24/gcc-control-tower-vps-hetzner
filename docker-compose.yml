@@ -28,10 +28,9 @@ services:
 
   nginx:
     container_name: nginx
-    build: 
-      context: 
+    build:
+      context: .
       dockerfile: docker/Dockerfile.frontend
     ports:
       - "80:80"
     restart: unless-stopped
-
