@@ -1,5 +1,2 @@
-const config = {
-  API_BASE_URL: '/api', // 🔴 NEVER localhost in prod
-};
-
-export default config;
+// Central API configuration
+export const API_BASE_URL = '/api';
