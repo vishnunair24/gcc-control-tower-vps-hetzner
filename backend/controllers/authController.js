@@ -72,9 +72,12 @@ exports.login = async (req, res) => {
     //
     // - Default SameSite to "lax" for same-origin
     // - Allow overriding via COOKIE_SAME_SITE
-    // - Only mark Secure when COOKIE_SECURE=true
+    // - Only mark Secure when COOKIE_SECURE=true *and* the request
+    //   is actually over HTTPS (x-forwarded-proto or req.secure).
     const sameSite = process.env.COOKIE_SAME_SITE || "lax";
-    const secure = process.env.COOKIE_SECURE === "true";
+    const secureEnv = process.env.COOKIE_SECURE === "true";
+    const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+    const secure = secureEnv && isHttps;
 
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
