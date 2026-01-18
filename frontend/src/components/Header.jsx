@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../config";
+import api from "../api";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Header() {
@@ -39,7 +38,7 @@ export default function Header() {
     let mounted = true;
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, { withCredentials: true });
+        const res = await api.get("/auth/me");
         if (mounted) setUser(res.data);
       } catch (e) {
         if (mounted) setUser(null);
@@ -50,7 +49,7 @@ export default function Header() {
 
   const logout = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/auth/logout`, {}, { withCredentials: true });
+      await api.post("/auth/logout", {});
     } catch (e) {
       console.error("Logout failed", e);
     }

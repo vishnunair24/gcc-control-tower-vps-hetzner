@@ -1,7 +1,6 @@
-import { API_BASE_URL } from "../config";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import ExcelReplaceUpload from "../components/ExcelReplaceUpload";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -57,9 +56,7 @@ export default function InfraTracker() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         const role = res.data?.role;
 
         // Customers should not access the Infra tracker directly
@@ -88,7 +85,7 @@ export default function InfraTracker() {
   // Load Infra Tasks
   // =========================
   const loadTasks = async () => {
-    const res = await axios.get(`${API_BASE_URL}/infra-tasks`, {
+    const res = await api.get("/infra-tasks", {
       params: customerName ? { customerName } : {},
     });
     setTasks(res.data || []);
@@ -151,10 +148,7 @@ export default function InfraTracker() {
   };
 
   const saveEdit = async () => {
-    await axios.put(
-      `${API_BASE_URL}/infra-tasks/${editRowId}`,
-      editData
-    );
+    await api.put(`/infra-tasks/${editRowId}`, editData);
     setEditRowId(null);
     setEditData({});
     loadTasks();
@@ -192,7 +186,7 @@ export default function InfraTracker() {
       payload.customerName = customerName;
     }
 
-    await axios.post(`${API_BASE_URL}/infra-tasks`, payload);
+    await api.post("/infra-tasks", payload);
 
     setNewRows((prev) => prev.filter((r) => r._tempId !== row._tempId));
     loadTasks();
@@ -205,7 +199,7 @@ export default function InfraTracker() {
       if (customerName) {
         payload.customerName = customerName;
       }
-      await axios.post(`${API_BASE_URL}/infra-tasks`, payload);
+      await api.post("/infra-tasks", payload);
     }
     setNewRows([]);
     loadTasks();

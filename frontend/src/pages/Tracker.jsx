@@ -1,7 +1,6 @@
-import { API_BASE_URL } from "../config";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import ExcelReplaceUpload from "../components/ExcelReplaceUpload";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -63,9 +62,7 @@ export default function Tracker() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         const role = res.data?.role;
 
         // Customers see only Dashboard
@@ -97,7 +94,7 @@ export default function Tracker() {
   // Load data
   // =========================
   const loadTasks = async () => {
-    const res = await axios.get(`${API_BASE_URL}/tasks`, {
+    const res = await api.get("/tasks", {
       params: customerName ? { customerName } : {},
     });
     setTasks(res.data || []);
@@ -165,10 +162,7 @@ export default function Tracker() {
   };
 
   const saveEdit = async () => {
-    await axios.put(
-      `${API_BASE_URL}/tasks/${editRowId}`,
-      editData
-    );
+    await api.put(`/tasks/${editRowId}` , editData);
     setEditRowId(null);
     setEditData({});
     loadTasks();
@@ -206,7 +200,7 @@ export default function Tracker() {
       payload.customerName = customerName;
     }
 
-    await axios.post(`${API_BASE_URL}/tasks`, payload);
+    await api.post("/tasks", payload);
     setNewRows((prev) => prev.filter((r) => r._tempId !== row._tempId));
     loadTasks();
   };
@@ -218,7 +212,7 @@ export default function Tracker() {
       if (customerName) {
         payload.customerName = customerName;
       }
-      await axios.post(`${API_BASE_URL}/tasks`, payload);
+      await api.post("/tasks", payload);
     }
     setNewRows([]);
     loadTasks();

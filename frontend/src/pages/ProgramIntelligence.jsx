@@ -1,7 +1,6 @@
-import { API_BASE_URL } from "../config";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -29,9 +28,7 @@ export default function ProgramIntelligence() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         const role = res.data?.role;
 
         // Customers should only see Dashboard, not intelligence views
@@ -75,8 +72,8 @@ export default function ProgramIntelligence() {
 
   // ================= LOAD DATA =================
   useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/tasks`, {
+    api
+      .get("/tasks", {
         params: customerName ? { customerName } : {},
       })
       .then((res) => {

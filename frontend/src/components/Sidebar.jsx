@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../config";
+import api from "../api";
 
 function Sidebar() {
   const location = useLocation();
@@ -13,9 +12,7 @@ function Sidebar() {
     let mounted = true;
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         if (mounted) setUser(res.data);
       } catch {
         if (mounted) setUser(null);

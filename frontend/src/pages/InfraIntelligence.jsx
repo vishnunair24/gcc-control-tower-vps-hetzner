@@ -1,6 +1,5 @@
-import { API_BASE_URL } from "../config";
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api from "../api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -23,9 +22,7 @@ export default function InfraIntelligence() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         const role = res.data?.role;
 
         // Customers should not see Infra intelligence; redirect them
@@ -75,8 +72,8 @@ export default function InfraIntelligence() {
   // Load Infra Tasks
   // =========================
   useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/infra-tasks`, {
+    api
+      .get("/infra-tasks", {
         params: customerName ? { customerName } : {},
       })
       .then((res) => setTasks(res.data || []));

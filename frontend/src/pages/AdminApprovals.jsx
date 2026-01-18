@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../config";
+import api from "../api";
 
 export default function AdminApprovals() {
   const [items, setItems] = useState([]);
@@ -10,17 +10,8 @@ export default function AdminApprovals() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/pending`, {
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d.error || "Failed to load — are you signed in as admin?");
-        setItems([]);
-        setLoading(false);
-        return;
-      }
-      const data = await res.json();
+      const res = await api.get("/auth/pending");
+      const data = res.data;
       setItems(data || []);
     } catch (e) {
       setError("Network error");
@@ -37,15 +28,8 @@ export default function AdminApprovals() {
   async function approve(id) {
     if (!window.confirm("Approve this signup and send reset token?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/approve/${id}`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data.error || "Failed to approve");
-        return;
-      }
+      const res = await api.post(`/auth/approve/${id}`);
+      const data = res.data || {};
       alert(
         `Approved. Reset token has been emailed/logged.\n\nEmail: ${
           data.email || ""
@@ -60,15 +44,8 @@ export default function AdminApprovals() {
   async function decline(id) {
     if (!window.confirm("Decline this signup?")) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/decline/${id}`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data.error || "Failed to decline");
-        return;
-      }
+      const res = await api.post(`/auth/decline/${id}`);
+      const data = res.data || {};
       alert("Signup declined.");
       load();
     } catch (e) {

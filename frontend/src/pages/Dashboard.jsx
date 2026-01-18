@@ -1,7 +1,6 @@
-import { API_BASE_URL } from "../config";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { motion } from "framer-motion";
 import {
   PieChart,
@@ -66,11 +65,9 @@ function Dashboard() {
   // Load current user; for customers, lock dashboard to their own customerName.
   // For employees/admins, require a customerName in the URL.
   useEffect(() => {
-    (async () => {
+    async function checkAuth() {
       try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me");
         const role = res.data?.role;
         setUserRole(role || null);
 
@@ -90,14 +87,16 @@ function Dashboard() {
         // For initial page load, treat any failure to
         // load /auth/me as unauthenticated and send the
         // user to the login page.
+        console.error("Auth failed, redirecting to login", err);
         if (status === 401 || status === 403 || !status) {
           window.location.href = "/login.html";
         } else {
-          console.error("/auth/me failed on dashboard load", err);
           window.location.href = "/login.html";
         }
       }
-    })();
+    }
+
+    checkAuth();
   }, [navigate, urlCustomerName]);
 
   useEffect(() => {
@@ -110,7 +109,7 @@ function Dashboard() {
 
   const fetchTasks = async () => {
     const params = customerName ? { customerName } : {};
-    const res = await axios.get(`${API_BASE_URL}/tasks`, {
+    const res = await api.get("/tasks", {
       params,
     });
     setTasks(res.data || []);
