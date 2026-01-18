@@ -2,38 +2,56 @@ const prisma = require("../prisma/client");
 
 const COOKIE_NAME = "sid";
 
+// Extend session only if it's close to expiry (5 min window)
+const EXTEND_WINDOW_MS = 5 * 60 * 1000;
+
 exports.loadSession = async (req, res, next) => {
   try {
-    const token = req.cookies && req.cookies[COOKIE_NAME];
+    const token = req.cookies?.[COOKIE_NAME];
     if (!token) return next();
-    const session = await prisma.session.findUnique({ where: { token }, include: { user: true } });
+
+    const session = await prisma.session.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
     if (!session) return next();
+
     const now = new Date();
-    const idleRaw = process.env.SESSION_IDLE_MS;
-    const idleMs = idleRaw && Number(idleRaw) > 0 ? Number(idleRaw) : null;
 
-    // Only enforce/slide idle timeout when SESSION_IDLE_MS is a
-    // positive number. If it's disabled (null), sessions never
-    // expire automatically.
-    let effectiveExpiresAt = session.expiresAt;
-    if (idleMs) {
-      if (session.expiresAt < now) {
-        // expired
-        await prisma.session.deleteMany({ where: { token } });
-        return next();
-      }
+    // Hard expiry check
+    if (session.expiresAt && session.expiresAt < now) {
+      await prisma.session.delete({ where: { token } });
+      return next();
+    }
 
-      const newExpiresAt = new Date(now.getTime() + idleMs);
-      try {
-        await prisma.session.update({ where: { token }, data: { expiresAt: newExpiresAt } });
-        effectiveExpiresAt = newExpiresAt;
-      } catch (e) {
-        console.error("Failed to extend session expiry", e);
+    // 🔒 ONLY extend session if close to expiry
+    if (session.expiresAt) {
+      const remaining = session.expiresAt.getTime() - now.getTime();
+
+      if (remaining < EXTEND_WINDOW_MS) {
+        const idleRaw = process.env.SESSION_IDLE_MS;
+        const idleMs =
+          idleRaw && Number(idleRaw) > 0 ? Number(idleRaw) : null;
+
+        if (idleMs) {
+          const newExpiresAt = new Date(now.getTime() + idleMs);
+
+          // Best-effort update (NO FAILURE IMPACT)
+          prisma.session
+            .update({
+              where: { token },
+              data: { expiresAt: newExpiresAt },
+            })
+            .catch(() => {});
+        }
       }
     }
 
-    req.session = { ...session, expiresAt: effectiveExpiresAt };
+    // Attach session & user
+    req.session = session;
     req.user = session.user;
+
     next();
   } catch (err) {
     console.error("Session load failed:", err);
@@ -42,13 +60,21 @@ exports.loadSession = async (req, res, next) => {
 };
 
 exports.requireAuth = (req, res, next) => {
-  if (!req.user) return res.status(401).json({ error: "Not authenticated" });
-  if (req.user.disabled) return res.status(403).json({ error: "Account disabled" });
+  if (!req.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  if (req.user.disabled) {
+    return res.status(403).json({ error: "Account disabled" });
+  }
   next();
 };
 
 exports.requireAdmin = (req, res, next) => {
-  if (!req.user) return res.status(401).json({ error: "Not authenticated" });
-  if (req.user.role !== "admin") return res.status(403).json({ error: "Admin required" });
+  if (!req.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin required" });
+  }
   next();
 };

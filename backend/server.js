@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 const PORT = process.env.PORT || 3000;
 
@@ -13,6 +14,21 @@ const auditRoutes = require("./routes/auditRoutes");
 const { loadSession } = require("./middleware/sessionMiddleware");
 
 const app = express();
+
+/* ============================
+   🚨 REQUIRED FOR NGINX + DOCKER
+============================ */
+app.set("trust proxy", 1);
+
+/* ============================
+   CORS (COOKIE SAFE)
+============================ */
+app.use(
+  cors({
+    origin: true,          // allow same-origin + nginx
+    credentials: true,     // 🔑 allow cookies
+  })
+);
 
 /* ============================
    CORE MIDDLEWARE
@@ -29,12 +45,12 @@ app.use((req, res, next) => {
 });
 
 /* ============================
-   SESSION LOADER (MUST BE BEFORE ROUTES)
+   SESSION LOADER (CRITICAL)
 ============================ */
 app.use(loadSession);
 
 /* ============================
-   API ROUTES (PERMANENT FIX)
+   API ROUTES
 ============================ */
 
 // Auth
